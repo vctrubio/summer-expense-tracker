@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
@@ -35,6 +35,14 @@ export default function TransactionUpdate({
   const updateExpense = useMutation(api.expenses.updateExpense);
   const updateDeposit = useMutation(api.expenses.updateDeposit);
 
+  useEffect(() => {
+    if (transactionUpdate.size === 0) {
+      setShowUpdateDatePanel(false);
+      setShowUpdateLabelPanel(false);
+      setShowUpdateOwnerPanel(false);
+    }
+  }, [transactionUpdate.size]);
+
   const handleUpdateSelectedTransactions = async (field: 'timestamp' | 'label' | 'owner', value: any) => {
     try {
       let finalValue = value;
@@ -52,6 +60,8 @@ export default function TransactionUpdate({
           if (transaction.type === 'expense') {
             await updateExpense({
               id: transaction._id as Id<'expenses'>,
+              amount: transaction.amount,
+              desc: transaction.desc,
               ...(field === 'timestamp' && { timestamp: finalValue }),
               ...(field === 'label' && { label: finalValue }),
               ...(field === 'owner' && { dst: finalValue }),
