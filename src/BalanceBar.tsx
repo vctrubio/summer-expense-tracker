@@ -37,10 +37,11 @@ export default function BalanceBar({ expenses, deposits }: BalanceBarProps) {
               : "text-gray-700"
           )}
         >
-          {balance.toLocaleString("en-US", {
+          {balance.toLocaleString("de-DE", {
             style: "currency",
-            currency: "USD",
-          })}
+            currency: "EUR",
+            currencyDisplay: "code",
+          }).replace("EUR", "") + " €"}
         </div>
       </div>
 
@@ -49,18 +50,20 @@ export default function BalanceBar({ expenses, deposits }: BalanceBarProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg text-center">
             <p className="text-2xl font-bold text-green-600">
-              {totalDeposits.toLocaleString("en-US", {
+              {totalDeposits.toLocaleString("de-DE", {
                 style: "currency",
-                currency: "USD",
-              })}
+                currency: "EUR",
+                currencyDisplay: "code",
+              }).replace("EUR", "") + " €"}
             </p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg text-center">
             <p className="text-2xl font-bold text-red-600">
-              {totalExpenses.toLocaleString("en-US", {
+              {totalExpenses.toLocaleString("de-DE", {
                 style: "currency",
-                currency: "USD",
-              })}
+                currency: "EUR",
+                currencyDisplay: "code",
+              }).replace("EUR", "") + " €"}
             </p>
           </div>
         </div>

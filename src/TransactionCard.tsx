@@ -23,7 +23,7 @@ export default function TransactionCard({
   onDelete,
 }: TransactionCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow group w-full max-w-[420px] flex-shrink-0">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow group max-w-[385px] flex-1 min-w-[320px]">
       {/* First row: Amount and Description */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1 min-w-0 pr-3">
