@@ -100,13 +100,25 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
     const a = document.createElement('a');
     a.href = url;
     
-    // Create filename with tarifa-2025 format
+    // Create filename with tarifa naming, date range, and total days
     const year = new Date().getFullYear();
     let filename = type === 'all' ? `tarifa-${year}` : `${type}-tarifa-${year}`;
-    if (dateRange) {
-      const startDate = new Date(dateRange.start).toISOString().split('T')[0];
-      const endDate = new Date(dateRange.end).toISOString().split('T')[0];
-      filename = type === 'all' ? `tarifa-${year}` : `${type}-tarifa-${year}`;
+
+    if (allTransactions.length > 0) {
+      const firstTransactionDate = new Date(allTransactions[allTransactions.length - 1].timestamp);
+      const lastTransactionDate = new Date(allTransactions[0].timestamp);
+
+      const diffTime = Math.abs(lastTransactionDate.getTime() - firstTransactionDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end day
+
+      const formattedFirstDate = firstTransactionDate.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '');
+      const formattedLastDate = lastTransactionDate.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '');
+
+      filename += `-${formattedFirstDate}-${formattedLastDate}-${diffDays}days`;
+    } else {
+      // If no transactions, just use today's date with the base filename
+      const today = new Date().toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '');
+      filename += `-${today}`;
     }
     
     a.download = `${filename}.csv`;
@@ -142,9 +154,12 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
     }, {} as Record<string, Transaction[]>);
 
     // Format for WhatsApp
-    let whatsappText = `${type.charAt(0).toUpperCase() + type.slice(1)} Summary
+    let whatsappText = '';
+    if (type !== 'all') {
+      whatsappText += `${type.charAt(0).toUpperCase() + type.slice(1)} Summary
 
 `;
+    }
     
     Object.entries(groupedTransactions).forEach(([dateString, dayTransactions]) => {
       const date = new Date(dateString);
@@ -154,7 +169,7 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       whatsappText += `${dayOfWeek}, ${formattedDate}\n`;
       
       dayTransactions.forEach(transaction => {
-        const amount = `${transaction.type === 'expense' ? '-' : '+'}${Math.round(transaction.amount)}€`;
+        const amount = `${transaction.type === 'expense' ? '- ' : '+ '}${Math.round(transaction.amount)}€`;
         const label = transaction.label !== 'General' ? `, ${transaction.label}` : '';
         const owner = (transaction.type === 'expense' && transaction.dst) || 
                      (transaction.type === 'deposit' && transaction.by) ? 
@@ -165,6 +180,26 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       
       whatsappText += '\n';
     });
+
+    // Calculate totals
+    const totalExpenses = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const totalDeposits = transactions
+      .filter(t => t.type === 'deposit')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const overallTotal = totalDeposits - totalExpenses;
+
+    // Add totals to WhatsApp text
+    if (type === 'all') {
+      whatsappText += `Expenses: ${Math.round(totalExpenses)}€\n`;
+      whatsappText += `Deposits: ${Math.round(totalDeposits)}€\n`;
+      whatsappText += `Total: ${Math.round(overallTotal)}€\n`;
+    } else if (type === 'expenses') {
+      whatsappText += `Total Expenses: ${Math.round(totalExpenses)}€\n`;
+    } else if (type === 'deposits') {
+      whatsappText += `Total Deposits: ${Math.round(totalDeposits)}€\n`;
+    }
 
     // Copy to clipboard and open WhatsApp
     navigator.clipboard.writeText(whatsappText).then(() => {

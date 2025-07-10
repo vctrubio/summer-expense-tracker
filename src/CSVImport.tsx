@@ -208,6 +208,25 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
 
   if (!isOpen) return null;
 
+  // Calculate totals for preview
+  const totalExpenses = csvData
+    .filter(row => row.type === 'expense' && !isNaN(parseFloat(row.amount)))
+    .reduce((sum, row) => sum + parseFloat(row.amount), 0);
+
+  const totalDeposits = csvData
+    .filter(row => row.type === 'deposit' && !isNaN(parseFloat(row.amount)))
+    .reduce((sum, row) => sum + parseFloat(row.amount), 0);
+
+  const overallTotal = totalDeposits - totalExpenses;
+
+  const formatAmount = (amount: number) => {
+    const formatted = amount.toFixed(2);
+    if (formatted.startsWith('-')) {
+      return `- ${formatted.substring(1)}`;
+    }
+    return formatted;
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -406,6 +425,13 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="text-sm font-medium text-gray-700 mt-4">
+              {totalExpenses > 0 && <div>Expenses: ${formatAmount(totalExpenses)}</div>}
+              {totalDeposits > 0 && <div>Deposits: ${formatAmount(totalDeposits)}</div>}
+              {totalExpenses > 0 && totalDeposits > 0 && (
+                <div className="font-semibold">Total: ${formatAmount(overallTotal)}</div>
+              )}
             </div>
           </div>
         )}
