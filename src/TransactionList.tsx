@@ -3,6 +3,7 @@ import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { Id } from "../convex/_generated/dataModel";
 import TransactionCard from "./TransactionCard";
+import { formatPrice } from "./lib/utils";
 
 interface Transaction {
   _id: Id<"expenses"> | Id<"deposits">;
@@ -136,15 +137,29 @@ export default function TransactionList({
       {Object.entries(groupedTransactions).map(([dateString, transactions]) => {
         const { dayOfWeek, monthDay, relativeTime } =
           formatDateHeader(dateString);
+        
+        // Calculate total expenses for this date
+        const totalExpenses = transactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
 
         return (
           <div key={dateString} className="space-y-3">
             {/* Date header */}
             <div className="border-b border-gray-200 pb-2">
-              <h3 className="font-medium text-gray-900">
-                {dayOfWeek} {monthDay}
-              </h3>
-              <p className="text-sm text-gray-500">{relativeTime}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    {dayOfWeek} {monthDay}
+                  </h3>
+                  <p className="text-sm text-gray-500">{relativeTime}</p>
+                </div>
+                {totalExpenses > 0 && (
+                  <div className="text-sm text-blue-600 font-medium">
+                    {formatPrice(totalExpenses, "expense")}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Transaction cards */}
@@ -154,7 +169,7 @@ export default function TransactionList({
                   key={transaction._id}
                   transaction={transaction}
                   onEdit={() => handleEdit(transaction)}
-                  onDelete={() => handleDelete(transaction)}
+                  onDelete={() => { handleDelete(transaction); }}
                 />
               ))}
             </div>

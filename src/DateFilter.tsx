@@ -132,17 +132,21 @@ export default function DateFilter({
         <button
           onClick={handleApplyFilter}
           disabled={!startDate || !endDate || isLoading}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDefault ? "bg-gray-200 text-gray-700" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 ${
+            isDefault 
+              ? "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200" 
+              : "bg-gray-100 text-gray-700 border-blue-500 hover:bg-gray-200"
+          }`}
         >
           Apply Filter
         </button>
         <button
           onClick={handleClearFilter}
-          disabled={isLoading}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+          disabled={isLoading || isDefault}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 ${
             isDefault
-              ? "bg-gray-200 text-gray-700"
-              : "bg-red-600 text-white hover:bg-red-700"
+              ? "bg-gray-100 text-gray-700 border-gray-300"
+              : "bg-gray-100 text-gray-700 border-red-500 hover:bg-gray-200"
           }`}
         >
           Reset

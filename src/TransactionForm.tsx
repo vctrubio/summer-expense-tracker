@@ -26,6 +26,7 @@ export default function TransactionForm({ type, isOpen, onClose, editData }: Tra
   const [customOwner, setCustomOwner] = useState('');
   const [date, setDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stayOpen, setStayOpen] = useState(false);
 
   const amountRef = useRef<HTMLInputElement>(null);
 
@@ -90,13 +91,24 @@ export default function TransactionForm({ type, isOpen, onClose, editData }: Tra
         onClose();
       } else if ((e.key === 'Enter' && (e.shiftKey || e.metaKey || e.ctrlKey))) {
         e.preventDefault();
-        handleSubmit(e as any);
+        // Create a synthetic form event to trigger submit
+        const form = document.querySelector('form');
+        if (form) {
+          const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+          form.dispatchEvent(submitEvent);
+        }
+      } else if (e.key === 't' || e.key === 'T') {
+        // Only toggle if not editing and not focused on an input
+        if (!editData && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'SELECT') {
+          e.preventDefault();
+          setStayOpen(prev => !prev);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, editData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,15 +175,27 @@ export default function TransactionForm({ type, isOpen, onClose, editData }: Tra
         }
       }
 
-      // Reset form
+      // Reset form (except date if stayOpen is true)
       setAmount('');
       setDesc('');
       setLabel('');
       setOwner('');
       setCustomLabel('');
       setCustomOwner('');
-      setDate(new Date().toISOString().split('T')[0]);
-      onClose();
+      
+      // Close form or focus amount input based on stay open toggle
+      if (stayOpen) {
+        // Focus amount input after a brief delay to ensure form is reset
+        setTimeout(() => {
+          if (amountRef.current) {
+            amountRef.current.focus();
+          }
+        }, 50);
+      } else {
+        onClose();
+        // Reset date to today when closing the form
+        setDate(new Date().toISOString().split('T')[0]);
+      }
     } catch (error) {
       toast.error(`Failed to ${editData ? 'update' : 'add'} transaction`);
       console.error(error);
@@ -188,8 +212,23 @@ export default function TransactionForm({ type, isOpen, onClose, editData }: Tra
         <h3 className="font-medium text-gray-800">
           {editData ? 'Edit' : 'Add'} {type === 'expense' ? 'Expense' : 'Deposit'}
         </h3>
-        <div className="text-xs text-gray-500">
+        <div className="flex items-center gap-1 text-xs text-gray-500">
           <kbd className="px-1 py-0.5 bg-gray-100 rounded">Shift+Enter</kbd> to submit, <kbd className="px-1 py-0.5 bg-gray-100 rounded">Esc</kbd> to close
+          {!editData && (
+            <>
+              , <kbd 
+                className={`px-1 py-0.5 rounded cursor-pointer transition-colors ${
+                  stayOpen 
+                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
+                onClick={() => setStayOpen(!stayOpen)}
+                title="Toggle stay open"
+              >
+                T
+              </kbd> to toggle
+            </>
+          )}
         </div>
       </div>
 

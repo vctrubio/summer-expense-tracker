@@ -141,7 +141,9 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
     }, {} as Record<string, Transaction[]>);
 
     // Format for WhatsApp
-    let whatsappText = `💰 ${type.charAt(0).toUpperCase() + type.slice(1)} Summary\n\n`;
+    let whatsappText = `${type.charAt(0).toUpperCase() + type.slice(1)} Summary
+
+`;
     
     Object.entries(groupedTransactions).forEach(([dateString, dayTransactions]) => {
       const date = new Date(dateString);
@@ -151,7 +153,7 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       whatsappText += `${dayOfWeek}, ${formattedDate}\n`;
       
       dayTransactions.forEach(transaction => {
-        const amount = `€${transaction.amount.toFixed(2)}`;
+        const amount = `${transaction.type === 'expense' ? '-' : '+'}${transaction.amount.toFixed(2)}€`;
         const label = transaction.label !== 'General' ? `, ${transaction.label}` : '';
         const owner = (transaction.type === 'expense' && transaction.dst) || 
                      (transaction.type === 'deposit' && transaction.by) ? 

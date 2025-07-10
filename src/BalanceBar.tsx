@@ -1,5 +1,5 @@
 import { Doc } from "../convex/_generated/dataModel";
-import { cn } from "./lib/utils";
+import { cn, formatPrice } from "./lib/utils";
 
 interface BalanceBarProps {
   expenses: Doc<"expenses">[];
@@ -27,21 +27,11 @@ export default function BalanceBar({ expenses, deposits }: BalanceBarProps) {
   return (
     <div className="w-full bg-white p-6 rounded-lg border border-gray-200">
       <div className="flex justify-end items-center mb-4">
-        <div
-          className={cn(
-            "text-xl font-bold",
-            balance > 0
-              ? "text-green-500"
-              : balance < 0
-              ? "text-red-500"
-              : "text-gray-700"
-          )}
-        >
-          {balance.toLocaleString("de-DE", {
-            style: "currency",
-            currency: "EUR",
-            currencyDisplay: "code",
-          }).replace("EUR", "") + " €"}
+        <div className="text-xl font-bold text-gray-700">
+          {balance >= 0 
+            ? `+ ${balance.toFixed(2)} €` 
+            : `- ${Math.abs(balance).toFixed(2)} €`
+          }
         </div>
       </div>
 
@@ -49,30 +39,22 @@ export default function BalanceBar({ expenses, deposits }: BalanceBarProps) {
         {/* Financial Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-green-600">
-              {totalDeposits.toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR",
-                currencyDisplay: "code",
-              }).replace("EUR", "") + " €"}
+            <p className="text-2xl font-bold text-gray-700">
+              {formatPrice(totalDeposits, "deposit")}
             </p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <p className="text-2xl font-bold text-red-600">
-              {totalExpenses.toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR",
-                currencyDisplay: "code",
-              }).replace("EUR", "") + " €"}
+            <p className="text-2xl font-bold text-blue-600">
+              {formatPrice(totalExpenses, "expense")}
             </p>
           </div>
         </div>
 
         {/* Progress Bar */}
         <div>
-          <div className="relative w-full h-4 bg-red-200 rounded-full overflow-hidden">
+          <div className="relative w-full h-4 bg-blue-200 rounded-full overflow-hidden">
             <div
-              className="absolute top-0 left-0 h-full bg-green-400"
+              className="absolute top-0 left-0 h-full bg-gray-400"
               style={{ width: `${depositsPercentage}%` }}
             ></div>
           </div>

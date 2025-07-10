@@ -1,4 +1,5 @@
 import { Id } from "../convex/_generated/dataModel";
+import { formatPrice } from "./lib/utils";
 
 interface Transaction {
   _id: Id<"expenses"> | Id<"deposits">;
@@ -35,12 +36,11 @@ export default function TransactionCard({
           <span
             className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-bold ${
               transaction.type === "expense"
-                ? "bg-red-50 text-red-700"
-                : "bg-green-50 text-green-700"
+                ? "bg-blue-50 text-blue-700"
+                : "bg-gray-50 text-gray-700"
             }`}
           >
-            {transaction.type === "expense" ? "−" : "+"} $
-            {transaction.amount.toFixed(2)}
+            {formatPrice(transaction.amount, transaction.type)}
           </span>
         </div>
       </div>

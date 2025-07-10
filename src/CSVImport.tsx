@@ -82,7 +82,7 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
       return;
     }
     
-    setCsvData(parsedData);
+    setCsvData(prev => [...prev, ...parsedData]);
     setQuickText('');
   };
 
@@ -107,7 +107,7 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
         };
       });
 
-      setCsvData(rows);
+      setCsvData(prev => [...prev, ...rows]);
     };
     reader.readAsText(file);
   };
@@ -116,6 +116,16 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
     setCsvData(prev => prev.map((row, i) => 
       i === index ? { ...row, type } : row
     ));
+  };
+
+  const handleFieldChange = (index: number, field: keyof CSVRow, value: string) => {
+    setCsvData(prev => prev.map((row, i) => 
+      i === index ? { ...row, [field]: value } : row
+    ));
+  };
+
+  const handleRemoveRow = (index: number) => {
+    setCsvData(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleImport = async () => {
@@ -201,10 +211,7 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="font-medium text-gray-800">Import All Your Daily Expenses Here</h3>
-          <p className="text-sm text-gray-500">Quick entry or CSV upload</p>
-        </div>
+        <h3 className="font-medium text-gray-800">CSV Import</h3>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600"
@@ -231,22 +238,30 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
       <div className="space-y-6">
         {displayMode === 'quickText' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quick Entry
-            </label>
-            <div className="text-xs text-gray-500 mb-2">
-              Enter each expense on a new line: amount, description, label (optional), destination (optional)
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Amount, Description, Label (?), Destination (?)
+              </label>
+              <div className="text-xs text-gray-500">
+                <kbd className="px-1 py-0.5 bg-gray-100 rounded">Shift+Enter</kbd> to process
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
               <div className="md:col-span-2">
                 <textarea
                   value={quickText}
                   onChange={(e) => setQuickText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.shiftKey || e.metaKey || e.ctrlKey)) {
+                      e.preventDefault();
+                      handleQuickTextProcess();
+                    }
+                  }}
                   placeholder="20, ice cream
 39, gas
 15, coffee"
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  rows={6}
+                  className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 />
               </div>
               <div className="space-y-2">
@@ -258,19 +273,16 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
                 <button
                   onClick={handleQuickTextProcess}
-                  className="w-full px-4 py-2 bg-gray-900 text-white rounded text-sm hover:bg-gray-800 transition-colors"
+                  className="w-full px-4 py-3 bg-gray-900 text-white rounded text-sm hover:bg-gray-800 transition-colors"
                 >
                   Process
                 </button>
               </div>
-            </div>
-            <div className="text-xs text-gray-400">
-              Example: "20, ice cream" or "39, gas, food, restaurant" or "25, coffee, drinks"
             </div>
           </div>
         )}
@@ -324,25 +336,71 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
                     <th className="px-2 py-1 text-left">Category</th>
                     <th className="px-2 py-1 text-left">Name</th>
                     <th className="px-2 py-1 text-left">Type</th>
+                    <th className="px-2 py-1 text-left"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {csvData.map((row, index) => (
                     <tr key={index} className="border-t border-gray-100">
-                      <td className="px-2 py-1">{row.date}</td>
-                      <td className="px-2 py-1">{row.amount}</td>
-                      <td className="px-2 py-1 truncate max-w-24">{row.description}</td>
-                      <td className="px-2 py-1">{row.category}</td>
-                      <td className="px-2 py-1">{row.name}</td>
+                      <td className="px-2 py-1">
+                        <input
+                          type="date"
+                          value={row.date}
+                          onChange={(e) => handleFieldChange(index, 'date', e.target.value)}
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-2 py-1">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={row.amount}
+                          onChange={(e) => handleFieldChange(index, 'amount', e.target.value)}
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-2 py-1">
+                        <input
+                          type="text"
+                          value={row.description}
+                          onChange={(e) => handleFieldChange(index, 'description', e.target.value)}
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-2 py-1">
+                        <input
+                          type="text"
+                          value={row.category}
+                          onChange={(e) => handleFieldChange(index, 'category', e.target.value)}
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="px-2 py-1">
+                        <input
+                          type="text"
+                          value={row.name}
+                          onChange={(e) => handleFieldChange(index, 'name', e.target.value)}
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                        />
+                      </td>
                       <td className="px-2 py-1">
                         <select
                           value={row.type}
                           onChange={(e) => handleTypeChange(index, e.target.value as 'expense' | 'deposit')}
-                          className="text-xs border border-gray-300 rounded px-1 py-0.5"
+                          className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                         >
                           <option value="expense">Expense</option>
                           <option value="deposit">Deposit</option>
                         </select>
+                      </td>
+                      <td className="px-2 py-1">
+                        <button
+                          onClick={() => handleRemoveRow(index)}
+                          className="text-red-500 hover:text-red-700 text-xs"
+                          title="Remove row"
+                        >
+                          ×
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -354,12 +412,21 @@ export default function CSVImport({ isOpen, onClose }: CSVImportProps) {
 
         {/* Actions */}
         <div className="flex gap-2 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
+          {csvData.length > 0 ? (
+            <button
+              onClick={() => setCsvData([])}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors"
+            >
+              Clear All
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+          )}
           {csvData.length > 0 && (
             <button
               onClick={handleImport}
