@@ -1,4 +1,4 @@
-# Expense Tracker
+# Tarifa Expense Tracker
 
 This project is an expense tracker designed for developers, focusing on quick and easy money management.
 

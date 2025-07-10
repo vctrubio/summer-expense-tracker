@@ -101,7 +101,7 @@ export default function CalculatorSidebar({
     }
   };
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-lg">
       {/* Compact Balance Overview */}
       {transactionsData && (
         <div className="bg-white border border-gray-200 rounded-lg p-4">

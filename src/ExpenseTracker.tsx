@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import TransactionForm from "./TransactionForm";
 import TransactionList from "./TransactionList";
@@ -40,12 +40,12 @@ export default function ExpenseTracker() {
     const label = params.get("label");
     const owner = params.get("owner");
     const sortBy = params.get("sortBy");
-    
+
     if (type && (type === 'expense' || type === 'deposit')) filters.type = type;
     if (label) filters.label = label;
     if (owner) filters.owner = owner;
     if (sortBy && ['date', 'highest', 'lowest'].includes(sortBy)) filters.sortBy = sortBy;
-    
+
     return filters;
   });
   const [activeForm, setActiveForm] = useState<
@@ -72,15 +72,18 @@ export default function ExpenseTracker() {
     api.expenses.list,
     dateRange
       ? {
-          startDate: dateRange.start,
-          endDate: dateRange.end,
-        }
+        startDate: dateRange.start,
+        endDate: dateRange.end,
+      }
       : {},
   );
 
   const dateRangeData = useQuery(api.expenses.getDateRange);
   const labels = useQuery(api.labels.list) || [];
   const owners = useQuery(api.owners.list) || [];
+
+  const addLabel = useMutation(api.labels.add);
+  const addOwner = useMutation(api.owners.add);
 
   useEffect(() => {
     if (queryData !== undefined) {
@@ -191,19 +194,19 @@ export default function ExpenseTracker() {
 
     // Update URL params
     const url = new URL(window.location.href);
-    
+
     // Clear existing filter params
     url.searchParams.delete("type");
     url.searchParams.delete("label");
     url.searchParams.delete("owner");
     url.searchParams.delete("sortBy");
-    
+
     // Set new filter params
     if (newFilters.type) url.searchParams.set("type", newFilters.type);
     if (newFilters.label) url.searchParams.set("label", newFilters.label);
     if (newFilters.owner) url.searchParams.set("owner", newFilters.owner);
     if (newFilters.sortBy) url.searchParams.set("sortBy", newFilters.sortBy);
-    
+
     window.history.replaceState({}, "", url.toString());
   };
 
@@ -252,7 +255,7 @@ export default function ExpenseTracker() {
   if (!hasTransactions && !dateRange) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <QuickActionsBar
             activeForm={activeForm}
             setActiveForm={setActiveForm}
@@ -296,7 +299,7 @@ export default function ExpenseTracker() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Quick Actions Bar */}
         <QuickActionsBar
           activeForm={activeForm}
@@ -307,20 +310,21 @@ export default function ExpenseTracker() {
           dateRange={dateRange}
         />
 
-        {/* Main Layout: Forms + Content Grid */}
         <div className="mt-6 space-y-6">
-          {/* Inline Forms */}
-          {renderForms()}
-
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left: Main Content */}
             <div className="lg:col-span-2 space-y-6">
+              {renderForms()}
               <TransactionList
                 data={transactionsData}
                 onEdit={handleEdit}
                 isLoading={isLoading}
                 filters={filters}
+                labels={labels}
+                owners={owners}
+                addLabel={addLabel}
+                addOwner={addOwner}
               />
             </div>
 

@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { Id } from "../convex/_generated/dataModel";
 import TransactionCard from "./TransactionCard";
+import TransactionUpdate from "./TransactionUpdate";
 import { formatPrice } from "./lib/utils";
 
 interface Transaction {
@@ -38,6 +40,10 @@ interface TransactionListProps {
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   };
+  labels: { _id: Id<"labels">; name: string }[];
+  owners: { _id: Id<"owners">; name: string }[];
+  addLabel: (args: { name: string }) => Promise<Id<"labels">>;
+  addOwner: (args: { name: string }) => Promise<Id<"owners">>;
 }
 
 export default function TransactionList({
@@ -45,9 +51,31 @@ export default function TransactionList({
   onEdit,
   isLoading,
   filters = {},
+  labels,
+  owners,
+  addLabel,
+  addOwner,
 }: TransactionListProps) {
+  const [transactionUpdate, setTransactionUpdate] = useState<Set<string>>(new Set());
+
   const deleteExpense = useMutation(api.expenses.deleteExpense);
   const deleteDeposit = useMutation(api.expenses.deleteDeposit);
+
+  const handleToggleTransactionUpdate = (id: string) => {
+    setTransactionUpdate((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      return newSelected;
+    });
+  };
+
+  const handleDeselectAll = () => {
+    setTransactionUpdate(new Set());
+  };
 
   // Combine and filter transactions (but don't sort yet)
   const allTransactions = data
@@ -173,6 +201,16 @@ export default function TransactionList({
 
   return (
     <div className="space-y-6">
+      <TransactionUpdate
+        transactionUpdate={transactionUpdate}
+        allTransactions={allTransactions}
+        onDeselectAll={handleDeselectAll}
+        labels={labels}
+        owners={owners}
+        addLabel={addLabel}
+        addOwner={addOwner}
+      />
+
       {/* Date-grouped transactions */}
       {sortedDateEntries.map(([dateString, transactions]) => {
         const { dayOfWeek, monthDay, relativeTime } =
@@ -210,6 +248,8 @@ export default function TransactionList({
                   transaction={transaction}
                   onEdit={() => handleEdit(transaction)}
                   onDelete={() => { handleDelete(transaction); }}
+                  isSelected={transactionUpdate.has(transaction._id)}
+                  onClick={() => handleToggleTransactionUpdate(transaction._id)}
                 />
               ))}
             </div>
