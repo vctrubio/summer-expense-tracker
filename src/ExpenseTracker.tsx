@@ -26,6 +26,28 @@ export default function ExpenseTracker() {
     }
     return null;
   });
+
+  // Initialize filters from URL params
+  const [filters, setFilters] = useState<{
+    type?: 'expense' | 'deposit';
+    label?: string;
+    owner?: string;
+    sortBy?: 'date' | 'highest' | 'lowest';
+  }>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const filters: any = {};
+    const type = params.get("type");
+    const label = params.get("label");
+    const owner = params.get("owner");
+    const sortBy = params.get("sortBy");
+    
+    if (type && (type === 'expense' || type === 'deposit')) filters.type = type;
+    if (label) filters.label = label;
+    if (owner) filters.owner = owner;
+    if (sortBy && ['date', 'highest', 'lowest'].includes(sortBy)) filters.sortBy = sortBy;
+    
+    return filters;
+  });
   const [activeForm, setActiveForm] = useState<
     "expense" | "deposit" | "manage" | "csv" | null
   >(null);
@@ -149,6 +171,32 @@ export default function ExpenseTracker() {
     window.history.replaceState({}, "", url.toString());
   };
 
+  const handleFilterChange = (newFilters: {
+    type?: 'expense' | 'deposit';
+    label?: string;
+    owner?: string;
+    sortBy?: 'date' | 'highest' | 'lowest';
+  }) => {
+    setFilters(newFilters);
+
+    // Update URL params
+    const url = new URL(window.location.href);
+    
+    // Clear existing filter params
+    url.searchParams.delete("type");
+    url.searchParams.delete("label");
+    url.searchParams.delete("owner");
+    url.searchParams.delete("sortBy");
+    
+    // Set new filter params
+    if (newFilters.type) url.searchParams.set("type", newFilters.type);
+    if (newFilters.label) url.searchParams.set("label", newFilters.label);
+    if (newFilters.owner) url.searchParams.set("owner", newFilters.owner);
+    if (newFilters.sortBy) url.searchParams.set("sortBy", newFilters.sortBy);
+    
+    window.history.replaceState({}, "", url.toString());
+  };
+
   const hasTransactions =
     transactionsData &&
     (transactionsData.expenses.length > 0 ||
@@ -260,6 +308,7 @@ export default function ExpenseTracker() {
                 data={transactionsData}
                 onEdit={handleEdit}
                 isLoading={isLoading}
+                filters={filters}
               />
             </div>
 
@@ -271,6 +320,8 @@ export default function ExpenseTracker() {
                 onDateRangeChange={handleDateRangeChange}
                 dateRangeData={dateRangeData}
                 isLoading={isLoading}
+                filters={filters}
+                onFilterChange={handleFilterChange}
               />
             </div>
           </div>

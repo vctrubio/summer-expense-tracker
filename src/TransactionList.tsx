@@ -32,22 +32,45 @@ interface TransactionListProps {
     timestamp: number;
   }) => void;
   isLoading: boolean;
+  filters?: {
+    type?: 'expense' | 'deposit';
+    label?: string;
+    owner?: string;
+    sortBy?: 'date' | 'highest' | 'lowest';
+  };
 }
 
 export default function TransactionList({
   data,
   onEdit,
   isLoading,
+  filters = {},
 }: TransactionListProps) {
   const deleteExpense = useMutation(api.expenses.deleteExpense);
   const deleteDeposit = useMutation(api.expenses.deleteDeposit);
 
-  // Combine and sort transactions by timestamp
+  // Combine and filter transactions (but don't sort yet)
   const allTransactions = data
     ? [
         ...data.expenses.map((exp) => ({ ...exp, type: "expense" as const })),
         ...data.deposits.map((dep) => ({ ...dep, type: "deposit" as const })),
-      ].sort((a, b) => b.timestamp - a.timestamp)
+      ]
+        .filter((transaction) => {
+          // Filter by type
+          if (filters.type && transaction.type !== filters.type) return false;
+          
+          // Filter by label
+          if (filters.label && transaction.label !== filters.label) return false;
+          
+          // Filter by owner
+          if (filters.owner) {
+            const owner = transaction.type === "expense" ? transaction.dst : transaction.by;
+            if (owner !== filters.owner) return false;
+          }
+          
+          return true;
+        })
+        .sort((a, b) => b.timestamp - a.timestamp) // Always sort by date first for grouping
     : [];
 
   // Group transactions by date
@@ -131,10 +154,27 @@ export default function TransactionList({
     );
   }
 
+  // Sort the grouped date entries based on the sortBy filter
+  const sortedDateEntries = Object.entries(groupedTransactions).sort(([dateA, transactionsA], [dateB, transactionsB]) => {
+    switch (filters.sortBy) {
+      case 'highest':
+        const expensesA = transactionsA.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        const expensesB = transactionsB.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        return expensesB - expensesA; // Highest expense dates first
+      case 'lowest':
+        const expensesA2 = transactionsA.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        const expensesB2 = transactionsB.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        return expensesA2 - expensesB2; // Lowest expense dates first
+      case 'date':
+      default:
+        return new Date(dateB).getTime() - new Date(dateA).getTime(); // Newest dates first
+    }
+  });
+
   return (
     <div className="space-y-6">
       {/* Date-grouped transactions */}
-      {Object.entries(groupedTransactions).map(([dateString, transactions]) => {
+      {sortedDateEntries.map(([dateString, transactions]) => {
         const { dayOfWeek, monthDay, relativeTime } =
           formatDateHeader(dateString);
         

@@ -1,4 +1,5 @@
 import DateFilter from "./DateFilter";
+import FilterBar from "./FilterBar";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
@@ -17,6 +18,18 @@ interface CalculatorSidebarProps {
   onDateRangeChange: (range: { start: number; end: number } | null) => void;
   dateRangeData: { earliest: number; latest: number } | null;
   isLoading: boolean;
+  filters: {
+    type?: 'expense' | 'deposit';
+    label?: string;
+    owner?: string;
+    sortBy?: 'date' | 'highest' | 'lowest';
+  };
+  onFilterChange: (filters: {
+    type?: 'expense' | 'deposit';
+    label?: string;
+    owner?: string;
+    sortBy?: 'date' | 'highest' | 'lowest';
+  }) => void;
 }
 
 export default function CalculatorSidebar({
@@ -24,7 +37,9 @@ export default function CalculatorSidebar({
   dateRange,
   onDateRangeChange,
   dateRangeData,
-  isLoading
+  isLoading,
+  filters,
+  onFilterChange
 }: CalculatorSidebarProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteExpense = useMutation(api.expenses.deleteExpense);
@@ -143,6 +158,11 @@ export default function CalculatorSidebar({
         onDateRangeChange={onDateRangeChange}
         availableRange={dateRangeData}
         isLoading={isLoading}
+      />
+
+      <FilterBar
+        filters={filters}
+        onFilterChange={onFilterChange}
       />
 
       {/* Admin Section */}
