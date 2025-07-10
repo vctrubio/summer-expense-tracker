@@ -100,12 +100,13 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
     const a = document.createElement('a');
     a.href = url;
     
-    // Create filename with date range if applicable
-    let filename = `${type}-${new Date().toISOString().split('T')[0]}`;
+    // Create filename with tarifa-2025 format
+    const year = new Date().getFullYear();
+    let filename = type === 'all' ? `tarifa-${year}` : `${type}-tarifa-${year}`;
     if (dateRange) {
       const startDate = new Date(dateRange.start).toISOString().split('T')[0];
       const endDate = new Date(dateRange.end).toISOString().split('T')[0];
-      filename = `${type}-${startDate}-to-${endDate}`;
+      filename = type === 'all' ? `tarifa-${year}` : `${type}-tarifa-${year}`;
     }
     
     a.download = `${filename}.csv`;
@@ -153,13 +154,13 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       whatsappText += `${dayOfWeek}, ${formattedDate}\n`;
       
       dayTransactions.forEach(transaction => {
-        const amount = `${transaction.type === 'expense' ? '-' : '+'}${transaction.amount.toFixed(2)}€`;
+        const amount = `${transaction.type === 'expense' ? '-' : '+'}${Math.round(transaction.amount)}€`;
         const label = transaction.label !== 'General' ? `, ${transaction.label}` : '';
         const owner = (transaction.type === 'expense' && transaction.dst) || 
                      (transaction.type === 'deposit' && transaction.by) ? 
                      `, ${transaction.type === 'expense' ? transaction.dst : transaction.by}` : '';
         
-        whatsappText += `- ${amount}, ${transaction.desc}${label}${owner}\n`;
+        whatsappText += `${amount}, ${transaction.desc}${label}${owner}\n`;
       });
       
       whatsappText += '\n';
