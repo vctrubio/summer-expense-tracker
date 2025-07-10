@@ -79,6 +79,8 @@ export default function ExpenseTracker() {
   );
 
   const dateRangeData = useQuery(api.expenses.getDateRange);
+  const labels = useQuery(api.labels.list) || [];
+  const owners = useQuery(api.owners.list) || [];
 
   useEffect(() => {
     if (queryData !== undefined) {
@@ -101,20 +103,28 @@ export default function ExpenseTracker() {
 
       switch (e.key.toLowerCase()) {
         case "e":
-          e.preventDefault();
-          setActiveForm(activeForm === "expense" ? null : "expense");
+          if (e.shiftKey) {
+            e.preventDefault();
+            setActiveForm(activeForm === "expense" ? null : "expense");
+          }
           break;
         case "d":
-          e.preventDefault();
-          setActiveForm(activeForm === "deposit" ? null : "deposit");
+          if (e.shiftKey) {
+            e.preventDefault();
+            setActiveForm(activeForm === "deposit" ? null : "deposit");
+          }
           break;
         case "m":
-          e.preventDefault();
-          setActiveForm(activeForm === "manage" ? null : "manage");
+          if (e.shiftKey) {
+            e.preventDefault();
+            setActiveForm(activeForm === "manage" ? null : "manage");
+          }
           break;
         case "c":
-          e.preventDefault();
-          setActiveForm(activeForm === "csv" ? null : "csv");
+          if (e.shiftKey) {
+            e.preventDefault();
+            setActiveForm(activeForm === "csv" ? null : "csv");
+          }
           break;
         case "escape":
           e.preventDefault();
@@ -220,6 +230,8 @@ export default function ExpenseTracker() {
       <CSVImport
         isOpen={activeForm === "csv"}
         onClose={() => setActiveForm(null)}
+        labels={labels}
+        owners={owners}
       />
       <ManageLabelsOwners
         isOpen={activeForm === "manage"}

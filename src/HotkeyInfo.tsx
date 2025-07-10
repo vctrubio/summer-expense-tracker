@@ -7,10 +7,10 @@ export default function HotkeyInfo({ isOpen, onClose }: HotkeyInfoProps) {
   if (!isOpen) return null;
 
   const hotkeys = [
-    { key: 'E', description: 'Toggle expense form' },
-    { key: 'D', description: 'Toggle deposit form' },
-    { key: 'C', description: 'Toggle CSV import' },
-    { key: 'M', description: 'Toggle manage labels/owners' },
+    { key: 'Shift + E', description: 'Toggle expense form' },
+    { key: 'Shift + D', description: 'Toggle deposit form' },
+    { key: 'Shift + C', description: 'Toggle CSV import' },
+    { key: 'Shift + M', description: 'Toggle manage labels/owners' },
     { key: 'Esc', description: 'Close active form/modal' },
     { key: '?', description: 'Toggle this help' },
     { key: 'Shift + Enter', description: 'Submit active form' },
