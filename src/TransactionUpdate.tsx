@@ -62,6 +62,7 @@ export default function TransactionUpdate({
               id: transaction._id as Id<'expenses'>,
               amount: transaction.amount,
               desc: transaction.desc,
+              label: transaction.label,
               ...(field === 'timestamp' && { timestamp: finalValue }),
               ...(field === 'label' && { label: finalValue }),
               ...(field === 'owner' && { dst: finalValue }),
