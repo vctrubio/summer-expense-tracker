@@ -129,12 +129,19 @@ export default function CSVImport({ isOpen, onClose, owners }: CSVImportProps) {
         const rawDate = columns[dateIndex] || "";
         let formattedDate = "";
         if (rawDate) {
-          // By replacing hyphens with slashes, we hint the Date constructor to parse in local time.
-          const d = new Date(rawDate.replace(/-/g, "/"));
+          let d: Date;
+          // Check for DD/MM/YYYY format
+          if (rawDate.includes('/') && rawDate.split('/').length === 3) {
+            const parts = rawDate.split('/');
+            // Construct YYYY-MM-DD for consistent parsing
+            const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            d = new Date(isoDate);
+          } else {
+            // Assume YYYY-MM-DD or other formats that new Date() can handle
+            d = new Date(rawDate.replace(/-/g, "/"));
+          }
+
           if (!isNaN(d.getTime())) {
-            // We want a YYYY-MM-DD string that matches the user's local date.
-            // toISOString() converts to UTC, which can change the day.
-            // So, we get local date parts and create a UTC date from them.
             const year = d.getFullYear();
             const month = d.getMonth();
             const day = d.getDate();
