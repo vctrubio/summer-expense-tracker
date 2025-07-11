@@ -65,13 +65,19 @@ export default function TransactionCard({
         {/* Action buttons */}
         <div className="flex gap-1">
           <button
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
             className="opacity-0 group-hover:opacity-100 text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50 transition-all"
           >
             Edit
           </button>
           <button
-            onClick={onDelete}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
             className="opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50 transition-all"
           >
             Delete

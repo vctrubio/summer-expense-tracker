@@ -143,14 +143,14 @@ export default function TransactionForm({
           await updateExpense({
             id: editData.id as any,
             ...transactionData,
-            dst: finalOwner === "" ? undefined : finalOwner,
+            dst: finalOwner || "",
           });
           toast.success("Expense updated");
         } else {
           await updateDeposit({
             id: editData.id as any,
             ...transactionData,
-            by: finalOwner === "" ? undefined : finalOwner,
+            by: finalOwner || "",
           });
           toast.success("Deposit updated");
         }
@@ -159,13 +159,13 @@ export default function TransactionForm({
         if (type === "expense") {
           await addExpense({
             ...transactionData,
-            dst: finalOwner === "" ? undefined : finalOwner,
+            dst: finalOwner || "",
           });
           toast.success("Expense added");
         } else {
           await addDeposit({
             ...transactionData,
-            by: finalOwner === "" ? undefined : finalOwner,
+            by: finalOwner || "",
           });
           toast.success("Deposit added");
         }
@@ -334,7 +334,7 @@ export default function TransactionForm({
             onChange={(e) => setOwner(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
-            <option value="">{type === "expense" ? "To" : "By"}</option>
+            <option value="">{type === "expense" ? "To Nobody" : "By Nobody"}</option>
             {owners.map((o) => (
               <option key={o._id} value={o.name}>
                 {o.name}

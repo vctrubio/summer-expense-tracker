@@ -7,7 +7,7 @@ const applicationTables = {
     timestamp: v.number(),
     amount: v.number(),
     desc: v.string(),
-    dst: v.optional(v.string()), // destination owner
+    dst: v.optional(v.string()), // destination owner (can be empty string)
     userId: v.id("users"),
   })
     .index("by_user", ["userId"])
@@ -17,7 +17,7 @@ const applicationTables = {
     timestamp: v.number(),
     amount: v.number(),
     desc: v.string(),
-    by: v.optional(v.string()), // owner who made the deposit
+    by: v.optional(v.string()), // owner who made the deposit (can be empty string)
     userId: v.id("users"),
   })
     .index("by_user", ["userId"])

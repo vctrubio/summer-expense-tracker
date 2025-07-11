@@ -53,7 +53,7 @@ export default function TransactionUpdate({
               desc: transaction.desc,
               timestamp: transaction.timestamp,
               ...(field === 'timestamp' && { timestamp: finalValue }),
-              ...(field === 'owner' && { dst: finalValue === "" ? undefined : finalValue }),
+              ...(field === 'owner' && { dst: finalValue || "" }),
             });
           } else if (transaction.type === 'deposit') {
             await updateDeposit({
@@ -62,7 +62,7 @@ export default function TransactionUpdate({
               desc: transaction.desc,
               timestamp: transaction.timestamp,
               ...(field === 'timestamp' && { timestamp: finalValue }),
-              ...(field === 'owner' && { by: finalValue === "" ? undefined : finalValue }),
+              ...(field === 'owner' && { by: finalValue || "" }),
             });
           }
         }

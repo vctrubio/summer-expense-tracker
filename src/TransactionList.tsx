@@ -137,6 +137,14 @@ export default function TransactionList({
       } else {
         await deleteDeposit({ id: transaction._id as Id<"deposits"> });
       }
+      
+      // Remove the deleted transaction from selection
+      setTransactionUpdate((prevSelected) => {
+        const newSelected = new Set(prevSelected);
+        newSelected.delete(transaction._id);
+        return newSelected;
+      });
+      
       toast.success(`${transaction.type} deleted`);
     } catch (error) {
       toast.error(`Failed to delete ${transaction.type}`);
