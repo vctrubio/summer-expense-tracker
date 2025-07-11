@@ -4,20 +4,17 @@ import { api } from "../convex/_generated/api";
 interface FilterBarProps {
   filters: {
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   };
   onFilterChange: (filters: {
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   }) => void;
 }
 
 export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
-  const labels = useQuery(api.labels.list) || [];
   const owners = useQuery(api.owners.list) || [];
 
   const handleFilterChange = (key: string, value: string) => {
@@ -65,22 +62,6 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
           </select>
         </div>
 
-        {/* Label Filter */}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
-          <select
-            value={filters.label || ''}
-            onChange={(e) => handleFilterChange('label', e.target.value)}
-            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Labels</option>
-            {labels.map((label) => (
-              <option key={label._id} value={label.name}>
-                {label.name}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* Owner Filter */}
         <div>

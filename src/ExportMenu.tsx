@@ -6,7 +6,6 @@ interface Transaction {
   timestamp: number;
   amount: number;
   desc: string;
-  label: string;
   dst?: string;
   by?: string;
   type: 'expense' | 'deposit';
@@ -81,13 +80,12 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       return;
     }
 
-    const headers = ['Date', 'Type', 'Amount', 'Description', 'Label', 'Owner'];
+    const headers = ['Date', 'Type', 'Amount', 'Description', 'Sister'];
     const rows = transactions.map(t => [
       new Date(t.timestamp).toLocaleDateString(),
       t.type,
       t.amount.toFixed(2),
       t.desc,
-      t.label,
       t.type === 'expense' ? (t.dst || '') : (t.by || '')
     ]);
 
@@ -170,12 +168,11 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       
       dayTransactions.forEach(transaction => {
         const amount = `${transaction.type === 'expense' ? '- ' : '+ '}${Math.round(transaction.amount)}€`;
-        const label = transaction.label !== 'General' ? `, ${transaction.label}` : '';
         const owner = (transaction.type === 'expense' && transaction.dst) || 
                      (transaction.type === 'deposit' && transaction.by) ? 
                      `, ${transaction.type === 'expense' ? transaction.dst : transaction.by}` : '';
         
-        whatsappText += `${amount}, ${transaction.desc}${label}${owner}\n`;
+        whatsappText += `${amount}, ${transaction.desc}${owner}\n`;
       });
       
       whatsappText += '\n';

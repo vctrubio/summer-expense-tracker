@@ -11,7 +11,6 @@ interface TransactionFormProps {
     id: string;
     amount: number;
     desc: string;
-    label: string;
     owner?: string;
     timestamp: number;
   };
@@ -25,9 +24,7 @@ export default function TransactionForm({
 }: TransactionFormProps) {
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
-  const [label, setLabel] = useState("");
   const [owner, setOwner] = useState("");
-  const [customLabel, setCustomLabel] = useState("");
   const [customOwner, setCustomOwner] = useState("");
   const [date, setDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,14 +32,12 @@ export default function TransactionForm({
 
   const amountRef = useRef<HTMLInputElement>(null);
 
-  const labels = useQuery(api.labels.list) || [];
   const owners = useQuery(api.owners.list) || [];
 
   const addExpense = useMutation(api.expenses.addExpense);
   const addDeposit = useMutation(api.expenses.addDeposit);
   const updateExpense = useMutation(api.expenses.updateExpense);
   const updateDeposit = useMutation(api.expenses.updateDeposit);
-  const addLabel = useMutation(api.labels.add);
   const addOwner = useMutation(api.owners.add);
 
   // Focus on amount input when form opens
@@ -57,16 +52,13 @@ export default function TransactionForm({
     if (editData) {
       setAmount(editData.amount.toString());
       setDesc(editData.desc);
-      setLabel(editData.label);
       setOwner(editData.owner || "");
       setDate(new Date(editData.timestamp).toISOString().split("T")[0]);
     } else {
       // Reset form for new transaction
       setAmount("");
       setDesc("");
-      setLabel("");
       setOwner("");
-      setCustomLabel("");
       setCustomOwner("");
 
       // Load saved date from localStorage or default to today
@@ -131,14 +123,7 @@ export default function TransactionForm({
 
     setIsSubmitting(true);
     try {
-      let finalLabel = label;
       let finalOwner = owner;
-
-      // Add custom label if provided
-      if (customLabel && !label) {
-        await addLabel({ name: customLabel });
-        finalLabel = customLabel;
-      }
 
       // Add custom owner if provided
       if (customOwner && !owner) {
@@ -149,7 +134,6 @@ export default function TransactionForm({
       const transactionData = {
         amount: parseFloat(amount),
         desc,
-        label: finalLabel || "",
         timestamp: new Date(date).getTime(),
       };
 
@@ -159,14 +143,14 @@ export default function TransactionForm({
           await updateExpense({
             id: editData.id as any,
             ...transactionData,
-            dst: finalOwner || undefined,
+            dst: finalOwner === "" ? undefined : finalOwner,
           });
           toast.success("Expense updated");
         } else {
           await updateDeposit({
             id: editData.id as any,
             ...transactionData,
-            by: finalOwner || undefined,
+            by: finalOwner === "" ? undefined : finalOwner,
           });
           toast.success("Deposit updated");
         }
@@ -175,13 +159,13 @@ export default function TransactionForm({
         if (type === "expense") {
           await addExpense({
             ...transactionData,
-            dst: finalOwner || undefined,
+            dst: finalOwner === "" ? undefined : finalOwner,
           });
           toast.success("Expense added");
         } else {
           await addDeposit({
             ...transactionData,
-            by: finalOwner || undefined,
+            by: finalOwner === "" ? undefined : finalOwner,
           });
           toast.success("Deposit added");
         }
@@ -190,9 +174,7 @@ export default function TransactionForm({
       // Reset form (except date if stayOpen is true)
       setAmount("");
       setDesc("");
-      setLabel("");
       setOwner("");
-      setCustomLabel("");
       setCustomOwner("");
 
       // Close form or focus amount input based on stay open toggle
@@ -251,7 +233,7 @@ export default function TransactionForm({
 
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-6 gap-3"
+        className="grid grid-cols-1 md:grid-cols-5 gap-3"
       >
         <div>
           <input
@@ -345,29 +327,6 @@ export default function TransactionForm({
           />
         </div>
 
-        <div>
-          <select
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-          >
-            <option value="">Label</option>
-            {labels.map((l) => (
-              <option key={l._id} value={l.name}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-          {!label && (
-            <input
-              type="text"
-              value={customLabel}
-              onChange={(e) => setCustomLabel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm mt-1"
-              placeholder="New label"
-            />
-          )}
-        </div>
 
         <div>
           <select

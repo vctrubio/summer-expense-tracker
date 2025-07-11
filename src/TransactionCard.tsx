@@ -1,12 +1,10 @@
 import { Id } from "../convex/_generated/dataModel";
-import { formatPrice } from "./lib/utils";
 
 interface Transaction {
   _id: Id<"expenses"> | Id<"deposits">;
   timestamp: number;
   amount: number;
   desc: string;
-  label: string;
   dst?: string;
   by?: string;
   type: "expense" | "deposit";
@@ -35,7 +33,7 @@ export default function TransactionCard({
       {/* First row: Amount and Description */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1 min-w-0 pr-3">
-          <p className="font-medium text-gray-900 text-sm truncate">
+          <p className="font-normal text-gray-800 text-base tracking-wide font-sans truncate">
             {transaction.desc}
           </p>
         </div>
@@ -47,19 +45,14 @@ export default function TransactionCard({
                 : "bg-gray-50 text-gray-700"
             }`}
           >
-            {formatPrice(transaction.amount, transaction.type)}
+{Math.round(transaction.amount)} €
           </span>
         </div>
       </div>
 
-      {/* Second row: Label and Destination/Source (if any) */}
+      {/* Second row: Destination/Source (if any) */}
       <div className="flex justify-between items-center">
         <div className="flex gap-2 text-xs text-gray-600">
-          {transaction.label !== "General" && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-              {transaction.label}
-            </span>
-          )}
           {((transaction.type === "expense" && transaction.dst) ||
             (transaction.type === "deposit" && transaction.by)) && (
             <span className="flex items-center gap-1 text-gray-500">

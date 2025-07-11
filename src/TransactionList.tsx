@@ -12,7 +12,6 @@ interface Transaction {
   timestamp: number;
   amount: number;
   desc: string;
-  label: string;
   dst?: string;
   by?: string;
 }
@@ -29,20 +28,16 @@ interface TransactionListProps {
     type: "expense" | "deposit";
     amount: number;
     desc: string;
-    label: string;
     owner?: string;
     timestamp: number;
   }) => void;
   isLoading: boolean;
   filters?: {
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   };
-  labels: { _id: Id<"labels">; name: string }[];
   owners: { _id: Id<"owners">; name: string }[];
-  addLabel: (args: { name: string }) => Promise<Id<"labels">>;
   addOwner: (args: { name: string }) => Promise<Id<"owners">>;
 }
 
@@ -51,9 +46,7 @@ export default function TransactionList({
   onEdit,
   isLoading,
   filters = {},
-  labels,
   owners,
-  addLabel,
   addOwner,
 }: TransactionListProps) {
   const [transactionUpdate, setTransactionUpdate] = useState<Set<string>>(new Set());
@@ -86,9 +79,6 @@ export default function TransactionList({
         .filter((transaction) => {
           // Filter by type
           if (filters.type && transaction.type !== filters.type) return false;
-          
-          // Filter by label
-          if (filters.label && transaction.label !== filters.label) return false;
           
           // Filter by owner
           if (filters.owner) {
@@ -159,7 +149,6 @@ export default function TransactionList({
       type: transaction.type,
       amount: transaction.amount,
       desc: transaction.desc,
-      label: transaction.label,
       owner: transaction.type === "expense" ? transaction.dst : transaction.by,
       timestamp: transaction.timestamp,
     });
@@ -205,9 +194,7 @@ export default function TransactionList({
         transactionUpdate={transactionUpdate}
         allTransactions={allTransactions}
         onDeselectAll={handleDeselectAll}
-        labels={labels}
         owners={owners}
-        addLabel={addLabel}
         addOwner={addOwner}
       />
 

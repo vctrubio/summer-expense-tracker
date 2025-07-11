@@ -7,7 +7,6 @@ import { Id } from "../convex/_generated/dataModel";
 interface CSVImportProps {
   isOpen: boolean;
   onClose: () => void;
-  labels: { _id: Id<"labels">; name: string }[];
   owners: { _id: Id<"owners">; name: string }[];
 }
 
@@ -15,12 +14,11 @@ interface CSVRow {
   date: string;
   amount: string;
   description: string;
-  label: string;
   destination: string;
   type: "expense" | "deposit";
 }
 
-export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImportProps) {
+export default function CSVImport({ isOpen, onClose, owners }: CSVImportProps) {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [quickText, setQuickText] = useState("");
@@ -40,7 +38,6 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
 
   const addExpense = useMutation(api.expenses.addExpense);
   const addDeposit = useMutation(api.expenses.addDeposit);
-  const addLabel = useMutation(api.labels.add);
 
   const parseQuickText = (text: string) => {
     const lines = text.split("\n").filter((line) => line.trim());
@@ -56,8 +53,7 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
 
       const amount = parts[0];
       const description = parts[1];
-      const label = parts[2] || ""; // Optional third part
-      const destination = parts[3] || ""; // Optional fourth part
+      const destination = parts[2] || ""; // Optional third part
 
       // Validate amount is numeric
       if (isNaN(parseFloat(amount))) continue;
@@ -66,7 +62,6 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
         date: selectedDate,
         amount: amount,
         description: description,
-        label: label,
         destination: destination,
         type: "expense", // default to expense
       });
@@ -108,8 +103,7 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
           date: columns[0] || "",
           amount: columns[1] || "",
           description: columns[2] || "",
-          label: columns[3] || "",
-          destination: columns[4] || "",
+          destination: columns[3] || "",
           type: "expense", // default to expense
         };
       });
@@ -161,21 +155,10 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
           const timestamp = row.date
             ? new Date(row.date).getTime()
             : Date.now();
-          const label = row.label.trim();
-
-          // Add label if it doesn't exist (will handle duplicates in backend)
-          if (label) {
-            try {
-              await addLabel({ name: label });
-            } catch (error) {
-              // Label might already exist, continue
-            }
-          }
 
           const transactionData = {
             amount,
             desc: row.description.trim(),
-            label,
             timestamp: isNaN(timestamp) ? Date.now() : timestamp,
           };
 
@@ -269,7 +252,7 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700">
-                Amount, Description, Label (?), Destination (?)
+                Amount, Description, Destination (?)
               </label>
               <div className="text-xs text-gray-500">
                 <kbd className="px-1 py-0.5 bg-gray-100 rounded">
@@ -328,8 +311,7 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
               Upload CSV File
             </label>
             <div className="text-xs text-gray-500 mb-2">
-              Expected format: Date, Amount, Description, Category, Name
-              (optional)
+              Expected format: Date, Amount, Description, Name (optional)
             </div>
             <div className="relative">
               <input
@@ -382,7 +364,6 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
                     <th className="px-2 py-1 text-left">Date</th>
                     <th className="px-2 py-1 text-left">Amount</th>
                     <th className="px-2 py-1 text-left">Description</th>
-                    <th className="px-2 py-1 text-left">Label</th>
                     <th className="px-2 py-1 text-left">Destination</th>
                     <th className="px-2 py-1 text-left">Type</th>
                     <th className="px-2 py-1 text-left"></th>
@@ -425,27 +406,6 @@ export default function CSVImport({ isOpen, onClose, labels, owners }: CSVImport
                           }
                           className="w-full text-xs border border-gray-300 rounded px-2 py-1"
                         />
-                      </td>
-                      <td className="px-2 py-1">
-                        <input
-                          type="text"
-                          value={row.label}
-                          onChange={(e) =>
-                            handleFieldChange(index, "label", e.target.value)
-                          }
-                          list="labels-datalist"
-                          className={`w-full text-xs border border-gray-300 rounded px-2 py-1 ${
-                            !labels.some((l) => l.name === row.label) &&
-                            row.label !== ""
-                              ? "text-red-500 border-red-500"
-                              : ""
-                          }`}
-                        />
-                        <datalist id="labels-datalist">
-                          {labels.map((label) => (
-                            <option key={label._id} value={label.name} />
-                          ))}
-                        </datalist>
                       </td>
                       <td className="px-2 py-1">
                         <input

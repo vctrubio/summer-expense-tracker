@@ -8,9 +8,7 @@ interface TransactionUpdateProps {
   transactionUpdate: Set<string>;
   allTransactions: any[]; // This should be more specific, but for now, any[]
   onDeselectAll: () => void;
-  labels: { _id: Id<"labels">; name: string }[];
   owners: { _id: Id<"owners">; name: string }[];
-  addLabel: (args: { name: string }) => Promise<Id<"labels">>;
   addOwner: (args: { name: string }) => Promise<Id<"owners">>;
 }
 
@@ -18,18 +16,13 @@ export default function TransactionUpdate({
   transactionUpdate,
   allTransactions,
   onDeselectAll,
-  labels,
   owners,
-  addLabel,
   addOwner,
 }: TransactionUpdateProps) {
   const [showUpdateDatePanel, setShowUpdateDatePanel] = useState(false);
-  const [showUpdateLabelPanel, setShowUpdateLabelPanel] = useState(false);
   const [showUpdateOwnerPanel, setShowUpdateOwnerPanel] = useState(false);
 
   const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
-  const [newLabel, setNewLabel] = useState("");
-  const [newCustomLabel, setNewCustomLabel] = useState("");
   const [newOwner, setNewOwner] = useState("");
   const [newCustomOwner, setNewCustomOwner] = useState("");
   const updateExpense = useMutation(api.expenses.updateExpense);
@@ -38,18 +31,14 @@ export default function TransactionUpdate({
   useEffect(() => {
     if (transactionUpdate.size === 0) {
       setShowUpdateDatePanel(false);
-      setShowUpdateLabelPanel(false);
       setShowUpdateOwnerPanel(false);
     }
   }, [transactionUpdate.size]);
 
-  const handleUpdateSelectedTransactions = async (field: 'timestamp' | 'label' | 'owner', value: any) => {
+  const handleUpdateSelectedTransactions = async (field: 'timestamp' | 'owner', value: any) => {
     try {
       let finalValue = value;
-      if (field === 'label' && newCustomLabel && !newLabel) {
-        await addLabel({ name: newCustomLabel });
-        finalValue = newCustomLabel;
-      } else if (field === 'owner' && newCustomOwner && !newOwner) {
+      if (field === 'owner' && newCustomOwner && !newOwner) {
         await addOwner({ name: newCustomOwner });
         finalValue = newCustomOwner;
       }
@@ -62,17 +51,18 @@ export default function TransactionUpdate({
               id: transaction._id as Id<'expenses'>,
               amount: transaction.amount,
               desc: transaction.desc,
-              label: transaction.label,
+              timestamp: transaction.timestamp,
               ...(field === 'timestamp' && { timestamp: finalValue }),
-              ...(field === 'label' && { label: finalValue }),
-              ...(field === 'owner' && { dst: finalValue }),
+              ...(field === 'owner' && { dst: finalValue === "" ? undefined : finalValue }),
             });
           } else if (transaction.type === 'deposit') {
             await updateDeposit({
               id: transaction._id as Id<'deposits'>,
+              amount: transaction.amount,
+              desc: transaction.desc,
+              timestamp: transaction.timestamp,
               ...(field === 'timestamp' && { timestamp: finalValue }),
-              ...(field === 'label' && { label: finalValue }),
-              ...(field === 'owner' && { by: finalValue }),
+              ...(field === 'owner' && { by: finalValue === "" ? undefined : finalValue }),
             });
           }
         }
@@ -87,20 +77,12 @@ export default function TransactionUpdate({
 
   const handleUpdateDate = () => {
     setShowUpdateDatePanel(!showUpdateDatePanel);
-    setShowUpdateLabelPanel(false);
-    setShowUpdateOwnerPanel(false);
-  };
-
-  const handleUpdateLabel = () => {
-    setShowUpdateLabelPanel(!showUpdateLabelPanel);
-    setShowUpdateDatePanel(false);
     setShowUpdateOwnerPanel(false);
   };
 
   const handleUpdateOwner = () => {
     setShowUpdateOwnerPanel(!showUpdateOwnerPanel);
     setShowUpdateDatePanel(false);
-    setShowUpdateLabelPanel(false);
   };
 
   return (
@@ -116,12 +98,6 @@ export default function TransactionUpdate({
               className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               Update Date
-            </button>
-            <button
-              onClick={handleUpdateLabel}
-              className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Update Label
             </button>
             <button
               onClick={handleUpdateOwner}
@@ -182,38 +158,6 @@ export default function TransactionUpdate({
         </div>
       )}
 
-      {showUpdateLabelPanel && (
-        <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <h4 className="text-md font-medium text-gray-900 mb-2">Update Label for Selected Transactions</h4>
-          <select
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
-          >
-            <option value="">Select Label</option>
-            {labels.map((l) => (
-              <option key={l._id} value={l.name}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-          {!newLabel && (
-            <input
-              type="text"
-              value={newCustomLabel}
-              onChange={(e) => setNewCustomLabel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm mt-1"
-              placeholder="New label"
-            />
-          )}
-          <button
-            onClick={() => handleUpdateSelectedTransactions('label', newLabel || newCustomLabel)}
-            className="mt-2 px-4 py-2 text-white rounded text-sm font-medium bg-blue-600 hover:bg-blue-700"
-          >
-            Update Label
-          </button>
-        </div>
-      )}
 
       {showUpdateOwnerPanel && (
         <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -223,7 +167,7 @@ export default function TransactionUpdate({
             onChange={(e) => setNewOwner(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
-            <option value="">Select Owner</option>
+            <option value="">Nobody</option>
             {owners.map((o) => (
               <option key={o._id} value={o.name}>
                 {o.name}

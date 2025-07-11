@@ -20,13 +20,11 @@ interface CalculatorSidebarProps {
   isLoading: boolean;
   filters: {
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   };
   onFilterChange: (filters: {
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   }) => void;
