@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { calculateOwnerBalances } from "./lib/utils";
 
 interface Transaction {
   _id: string;
@@ -20,9 +21,10 @@ interface ExportMenuProps {
     start: number;
     end: number;
   } | null;
+  owners: Array<{ _id: string; name: string }>;
 }
 
-export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
+export default function ExportMenu({ data, dateRange, owners }: ExportMenuProps) {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -192,6 +194,33 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
       whatsappText += `Expenses: ${Math.round(totalExpenses)}€\n`;
       whatsappText += `Deposits: ${Math.round(totalDeposits)}€\n`;
       whatsappText += `Total: ${Math.round(overallTotal)}€\n`;
+
+      // Owner-specific balances
+      const { ownerBalances, robenaSharedExpense, patriciaSharedExpense } =
+        calculateOwnerBalances(data.expenses, data.deposits, owners);
+
+      whatsappText += `\n--- Owner Balances ---\n`;
+      owners.forEach(owner => {
+        const balance = ownerBalances[owner.name];
+        if (balance) {
+          const totalToPay = (balance.expenses + balance.sharedExpenses) - balance.deposits;
+          whatsappText += `${owner.name}:\n`;
+          whatsappText += `  Deposited: ${balance.deposits.toFixed(2)} €\n`;
+          whatsappText += `  Expenses: ${balance.expenses.toFixed(2)} €\n`;
+          if (owner.name === "Robena") {
+            whatsappText += `  Shared Expenses (2/3): ${robenaSharedExpense.toFixed(2)} €\n`;
+          } else if (owner.name === "Patricia") {
+            whatsappText += `  Shared Expenses (1/3): ${patriciaSharedExpense.toFixed(2)} €\n`;
+          }
+          if (totalToPay > 0) {
+            whatsappText += `  Missing: ${totalToPay.toFixed(2)} €\n`;
+          } else if (totalToPay < 0) {
+            whatsappText += `  Overpaid: ${Math.abs(totalToPay).toFixed(2)} €\n`;
+          } else {
+            whatsappText += `  Balance Clear\n`;
+          }
+        }
+      });
     } else if (type === 'expenses') {
       whatsappText += `Total Expenses: ${Math.round(totalExpenses)}€\n`;
     } else if (type === 'deposits') {
@@ -200,84 +229,83 @@ export default function ExportMenu({ data, dateRange }: ExportMenuProps) {
 
     // Copy to clipboard and open WhatsApp
     navigator.clipboard.writeText(whatsappText).then(() => {
-      toast.success('Copied to clipboard! Opening WhatsApp...');
-      
-      // Open WhatsApp Web with pre-filled text
-      const encodedText = encodeURIComponent(whatsappText);
-      window.open(`https://wa.me/?text=${encodedText}`, '_blank');
-      
-      setShowExportMenu(false);
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} copied to clipboard!`);
+      window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`, '_blank');
     }).catch(() => {
       toast.error('Failed to copy to clipboard');
     });
+    
+    setShowExportMenu(false);
   };
 
-  if (!data || allTransactions.length === 0) {
-    return (
+  return (
+    <div className="relative">
       <button
-        disabled
-        className="px-3 py-1 rounded transition-colors opacity-50 cursor-not-allowed text-sm text-gray-600"
+        onClick={() => setShowExportMenu(!showExportMenu)}
+        className={`px-3 py-1 rounded transition-colors ${
+          showExportMenu
+            ? "bg-orange-100 text-orange-700"
+            : "hover:bg-gray-100"
+        }`}
       >
         <kbd className="mr-1">X</kbd> Export
       </button>
-    );
-  }
 
-  return (
-    <div className="relative" ref={exportMenuRef}>
-      <button
-        onClick={() => setShowExportMenu(!showExportMenu)}
-        className="px-3 py-1 rounded transition-colors hover:bg-gray-100 text-sm text-gray-600"
-      >
-        <kbd className="mr-1">X</kbd> Export ▼
-      </button>
-      
       {showExportMenu && (
-        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-48">
-          {/* CSV Export Section */}
-          <div className="p-2 border-b border-gray-100">
-            <div className="text-xs font-medium text-gray-500 mb-2">CSV Export</div>
-            <button
-              onClick={() => exportToCSV('all')}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
-            >
-              📊 All ({allTransactions.length})
-            </button>
-            <button
-              onClick={() => exportToCSV('expenses')}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
-            >
-              📉 Expenses ({allTransactions.filter(t => t.type === 'expense').length})
-            </button>
-            <button
-              onClick={() => exportToCSV('deposits')}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
-            >
-              📈 Deposits ({allTransactions.filter(t => t.type === 'deposit').length})
-            </button>
-          </div>
+        <div
+          ref={exportMenuRef}
+          className="absolute top-full left-0 mt-2 bg-white border border-gray-300 rounded shadow-lg p-4 min-w-[200px] z-50"
+        >
+          <h3 className="font-semibold mb-3">Export Options</h3>
           
-          {/* WhatsApp Export Section */}
-          <div className="p-2">
-            <div className="text-xs font-medium text-gray-500 mb-2">WhatsApp Export</div>
-            <button
-              onClick={() => exportToWhatsApp('all')}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
-            >
-              💬 All as Text
-            </button>
-            <button
-              onClick={() => exportToWhatsApp('expenses')}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
-            >
-              💬 Expenses as Text
-            </button>
-            <button
-              onClick={() => exportToWhatsApp('deposits')}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded"
-            >
-              💬 Deposits as Text
-            </button>
+          <div className="space-y-2">
+            <div>
+              <h4 className="text-sm font-medium mb-2">CSV Export</h4>
+              <div className="space-y-1">
+                <button
+                  onClick={() => exportToCSV('all')}
+                  className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded text-sm"
+                >
+                  All Transactions
+                </button>
+                <button
+                  onClick={() => exportToCSV('expenses')}
+                  className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded text-sm"
+                >
+                  Expenses Only
+                </button>
+                <button
+                  onClick={() => exportToCSV('deposits')}
+                  className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded text-sm"
+                >
+                  Deposits Only
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">WhatsApp Export</h4>
+              <div className="space-y-1">
+                <button
+                  onClick={() => exportToWhatsApp('all')}
+                  className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded text-sm"
+                >
+                  All Transactions
+                </button>
+                <button
+                  onClick={() => exportToWhatsApp('expenses')}
+                  className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded text-sm"
+                >
+                  Expenses Only
+                </button>
+                <button
+                  onClick={() => exportToWhatsApp('deposits')}
+                  className="w-full text-left px-3 py-1 hover:bg-gray-100 rounded text-sm"
+                >
+                  Deposits Only
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

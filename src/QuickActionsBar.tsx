@@ -13,6 +13,7 @@ interface QuickActionsBarProps {
     start: number;
     end: number;
   } | null;
+  owners: Array<any>;
 }
 
 export default function QuickActionsBar({ 
@@ -21,7 +22,8 @@ export default function QuickActionsBar({
   setShowHotkeys, 
   showHotkeys,
   data,
-  dateRange
+  dateRange,
+  owners
 }: QuickActionsBarProps) {
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-200">
@@ -73,7 +75,7 @@ export default function QuickActionsBar({
           <kbd className="mr-1">M</kbd> Manage
         </button>
         
-        <ExportMenu data={data} dateRange={dateRange} />
+        <ExportMenu data={data} dateRange={dateRange} owners={owners} />
       </div>
       
       <button

@@ -254,6 +254,7 @@ export default function ExpenseTracker() {
             showHotkeys={showHotkeys}
             data={transactionsData}
             dateRange={dateRange}
+            owners={owners}
           />
 
           <div className="mt-6">
@@ -308,6 +309,7 @@ export default function ExpenseTracker() {
             showHotkeys={showHotkeys}
             data={transactionsData}
             dateRange={dateRange}
+            owners={owners}
           />
         </div>
 
@@ -337,6 +339,7 @@ export default function ExpenseTracker() {
                 isLoading={isLoading}
                 filters={filters}
                 onFilterChange={handleFilterChange}
+                owners={owners}
               />
             </div>
           </div>

@@ -1,10 +1,16 @@
 import DateFilter from "./DateFilter";
 import FilterBar from "./FilterBar";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { useState } from "react";
+import ToPayCalc from "./ToPayCalc";
 import { Id } from "../convex/_generated/dataModel";
+
+interface Owner {
+  _id: Id<"owners">;
+  name: string;
+}
 
 interface CalculatorSidebarProps {
   transactionsData: {
@@ -28,6 +34,7 @@ interface CalculatorSidebarProps {
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   }) => void;
+  owners: Owner[];
 }
 
 export default function CalculatorSidebar({
@@ -98,6 +105,9 @@ export default function CalculatorSidebar({
       setIsDeleting(false);
     }
   };
+
+  const owners = useQuery(api.owners.list) || [];
+
   return (
     <div className="space-y-4 max-w-lg">
       {/* Compact Balance Overview */}
@@ -161,6 +171,11 @@ export default function CalculatorSidebar({
       <FilterBar
         filters={filters}
         onFilterChange={onFilterChange}
+      />
+
+      <ToPayCalc
+        transactionsData={transactionsData}
+        owners={owners}
       />
 
       {/* Admin Section */}
