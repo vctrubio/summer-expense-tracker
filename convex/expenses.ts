@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const list = query({
   args: {
@@ -8,18 +7,13 @@ export const list = query({
     endDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     let expensesQuery = ctx.db
       .query("expenses")
-      .withIndex("by_user_and_timestamp", (q) => q.eq("userId", userId));
+      .withIndex("by_timestamp");
 
     let depositsQuery = ctx.db
       .query("deposits")
-      .withIndex("by_user_and_timestamp", (q) => q.eq("userId", userId));
+      .withIndex("by_timestamp");
 
     if (args.startDate && args.endDate) {
       expensesQuery = expensesQuery.filter((q) =>
@@ -51,19 +45,14 @@ export const list = query({
 export const getDateRange = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     const expenses = await ctx.db
       .query("expenses")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_timestamp")
       .collect();
 
     const deposits = await ctx.db
       .query("deposits")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_timestamp")
       .collect();
 
     const allTransactions = [...expenses, ...deposits];
@@ -88,15 +77,9 @@ export const addExpense = mutation({
     timestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     return await ctx.db.insert("expenses", {
       ...args,
       timestamp: args.timestamp || Date.now(),
-      userId,
     });
   },
 });
@@ -109,15 +92,9 @@ export const addDeposit = mutation({
     timestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     return await ctx.db.insert("deposits", {
       ...args,
       timestamp: args.timestamp || Date.now(),
-      userId,
     });
   },
 });
@@ -125,14 +102,9 @@ export const addDeposit = mutation({
 export const deleteExpense = mutation({
   args: { id: v.id("expenses") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     const expense = await ctx.db.get(args.id);
-    if (!expense || expense.userId !== userId) {
-      throw new Error("Expense not found or unauthorized");
+    if (!expense) {
+      throw new Error("Expense not found");
     }
 
     await ctx.db.delete(args.id);
@@ -142,14 +114,9 @@ export const deleteExpense = mutation({
 export const deleteDeposit = mutation({
   args: { id: v.id("deposits") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     const deposit = await ctx.db.get(args.id);
-    if (!deposit || deposit.userId !== userId) {
-      throw new Error("Deposit not found or unauthorized");
+    if (!deposit) {
+      throw new Error("Deposit not found");
     }
 
     await ctx.db.delete(args.id);
@@ -165,14 +132,9 @@ export const updateExpense = mutation({
     timestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     const expense = await ctx.db.get(args.id);
-    if (!expense || expense.userId !== userId) {
-      throw new Error("Expense not found or unauthorized");
+    if (!expense) {
+      throw new Error("Expense not found");
     }
 
     const { id, ...updateData } = args;
@@ -189,14 +151,9 @@ export const updateDeposit = mutation({
     timestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
     const deposit = await ctx.db.get(args.id);
-    if (!deposit || deposit.userId !== userId) {
-      throw new Error("Deposit not found or unauthorized");
+    if (!deposit) {
+      throw new Error("Deposit not found");
     }
 
     const { id, ...updateData } = args;

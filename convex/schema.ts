@@ -8,28 +8,21 @@ const applicationTables = {
     amount: v.number(),
     desc: v.string(),
     dst: v.optional(v.string()), // destination owner (can be empty string)
-    userId: v.id("users"),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_and_timestamp", ["userId", "timestamp"]),
+    .index("by_timestamp", ["timestamp"]),
 
   deposits: defineTable({
     timestamp: v.number(),
     amount: v.number(),
     desc: v.string(),
     by: v.optional(v.string()), // owner who made the deposit (can be empty string)
-    userId: v.id("users"),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_and_timestamp", ["userId", "timestamp"]),
-
+    .index("by_timestamp", ["timestamp"]),
 
   owners: defineTable({
     name: v.string(),
-    userId: v.id("users"),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_and_name", ["userId", "name"]),
+    .index("by_name", ["name"]),
 };
 
 export default defineSchema({
