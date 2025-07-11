@@ -39,14 +39,20 @@ function Content() {
         <ExpenseTracker />
       </Authenticated>
       <Unauthenticated>
-        <div className="max-w-md mx-auto mt-20">
+        <div className="max-w-2xl mx-auto mt-20">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">
-              Welcome to Tarifa Expense Tracker
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+              🌊 Welcome to Nacho and the Boys Tarifa Expenses 2025! 🏄‍♂️
             </h1>
-            <p className="text-gray-600">
-              Sign in to start tracking your expenses and deposits
-            </p>
+            <div className="text-lg text-gray-700 mb-4">
+              Featuring the legendary trio:
+            </div>
+            <div className="text-xl font-semibold text-blue-600 mb-2">
+              🇪🇸 Paco • Pablo • Noah 🇪🇸
+            </div>
+            <div className="text-lg text-gray-600 mb-6">
+              with Dr. <em>Gardener</em> <strong>Nacho Trueba</strong>
+            </div>
           </div>
           <SignInForm />
         </div>
