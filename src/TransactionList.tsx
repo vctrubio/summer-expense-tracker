@@ -236,7 +236,7 @@ export default function TransactionList({
             </div>
 
             {/* Transaction cards */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-2 sm:flex-wrap sm:flex-row sm:gap-3">
               {transactions.map((transaction) => (
                 <TransactionCard
                   key={transaction._id}

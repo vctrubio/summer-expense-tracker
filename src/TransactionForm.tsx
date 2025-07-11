@@ -25,7 +25,6 @@ export default function TransactionForm({
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
   const [owner, setOwner] = useState("");
-  const [customOwner, setCustomOwner] = useState("");
   const [date, setDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stayOpen, setStayOpen] = useState(false);
@@ -59,7 +58,6 @@ export default function TransactionForm({
       setAmount("");
       setDesc("");
       setOwner("");
-      setCustomOwner("");
 
       // Load saved date from localStorage or default to today
       const savedDate = localStorage.getItem("transactionFormDate");
@@ -125,12 +123,6 @@ export default function TransactionForm({
     try {
       let finalOwner = owner;
 
-      // Add custom owner if provided
-      if (customOwner && !owner) {
-        await addOwner({ name: customOwner });
-        finalOwner = customOwner;
-      }
-
       const transactionData = {
         amount: parseFloat(amount),
         desc,
@@ -143,14 +135,14 @@ export default function TransactionForm({
           await updateExpense({
             id: editData.id as any,
             ...transactionData,
-            dst: finalOwner || "",
+            dst: finalOwner === "" ? "" : finalOwner,
           });
           toast.success("Expense updated");
         } else {
           await updateDeposit({
             id: editData.id as any,
             ...transactionData,
-            by: finalOwner || "",
+            by: finalOwner === "" ? "" : finalOwner,
           });
           toast.success("Deposit updated");
         }
@@ -159,13 +151,13 @@ export default function TransactionForm({
         if (type === "expense") {
           await addExpense({
             ...transactionData,
-            dst: finalOwner || "",
+            dst: finalOwner === "" ? "" : finalOwner,
           });
           toast.success("Expense added");
         } else {
           await addDeposit({
             ...transactionData,
-            by: finalOwner || "",
+            by: finalOwner === "" ? "" : finalOwner,
           });
           toast.success("Deposit added");
         }
@@ -175,7 +167,6 @@ export default function TransactionForm({
       setAmount("");
       setDesc("");
       setOwner("");
-      setCustomOwner("");
 
       // Close form or focus amount input based on stay open toggle
       if (stayOpen) {
@@ -233,30 +224,33 @@ export default function TransactionForm({
 
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-5 gap-3"
+        className="flex flex-col gap-4 sm:grid sm:grid-cols-5 sm:gap-3"
       >
-        <div>
-          <input
-            ref={amountRef}
-            type="number"
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-            placeholder="Amount"
-            required
-          />
-        </div>
+        {/* Amount and Description - side by side on mobile, separate on desktop */}
+        <div className="grid grid-cols-12 gap-2 sm:contents">
+          <div className="col-span-3 sm:col-span-1">
+            <input
+              ref={amountRef}
+              type="number"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              placeholder="Amount"
+              required
+            />
+          </div>
 
-        <div>
-          <input
-            type="text"
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-            placeholder="Description"
-            required
-          />
+          <div className="col-span-9 sm:col-span-1">
+            <input
+              type="text"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              placeholder="Description"
+              required
+            />
+          </div>
         </div>
 
         <div>
@@ -327,29 +321,19 @@ export default function TransactionForm({
           />
         </div>
 
-
         <div>
           <select
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
-            <option value="">{type === "expense" ? "To Nobody" : "By Nobody"}</option>
+            <option value="">Nobody</option>
             {owners.map((o) => (
               <option key={o._id} value={o.name}>
                 {o.name}
               </option>
             ))}
           </select>
-          {!owner && (
-            <input
-              type="text"
-              value={customOwner}
-              onChange={(e) => setCustomOwner(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm mt-1"
-              placeholder="New owner"
-            />
-          )}
         </div>
 
         <div className="flex gap-2">
@@ -358,8 +342,8 @@ export default function TransactionForm({
             disabled={isSubmitting}
             className={`px-4 py-2 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 ${
               type === "expense"
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-green-600 hover:bg-green-700"
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "bg-gray-600 hover:bg-gray-700"
             }`}
           >
             {isSubmitting ? "..." : editData ? "Update" : "Add"}

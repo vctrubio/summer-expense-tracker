@@ -24,7 +24,6 @@ export default function TransactionUpdate({
 
   const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
   const [newOwner, setNewOwner] = useState("");
-  const [newCustomOwner, setNewCustomOwner] = useState("");
   const updateExpense = useMutation(api.expenses.updateExpense);
   const updateDeposit = useMutation(api.expenses.updateDeposit);
 
@@ -38,10 +37,6 @@ export default function TransactionUpdate({
   const handleUpdateSelectedTransactions = async (field: 'timestamp' | 'owner', value: any) => {
     try {
       let finalValue = value;
-      if (field === 'owner' && newCustomOwner && !newOwner) {
-        await addOwner({ name: newCustomOwner });
-        finalValue = newCustomOwner;
-      }
 
       for (const id of transactionUpdate) {
         const transaction = allTransactions.find(t => t._id === id);
@@ -53,7 +48,7 @@ export default function TransactionUpdate({
               desc: transaction.desc,
               timestamp: transaction.timestamp,
               ...(field === 'timestamp' && { timestamp: finalValue }),
-              ...(field === 'owner' && { dst: finalValue || "" }),
+              ...(field === 'owner' && { dst: finalValue === "" ? "" : finalValue }),
             });
           } else if (transaction.type === 'deposit') {
             await updateDeposit({
@@ -62,7 +57,7 @@ export default function TransactionUpdate({
               desc: transaction.desc,
               timestamp: transaction.timestamp,
               ...(field === 'timestamp' && { timestamp: finalValue }),
-              ...(field === 'owner' && { by: finalValue || "" }),
+              ...(field === 'owner' && { by: finalValue === "" ? "" : finalValue }),
             });
           }
         }
@@ -174,17 +169,8 @@ export default function TransactionUpdate({
               </option>
             ))}
           </select>
-          {!newOwner && (
-            <input
-              type="text"
-              value={newCustomOwner}
-              onChange={(e) => setNewCustomOwner(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm mt-1"
-              placeholder="New owner"
-            />
-          )}
           <button
-            onClick={() => handleUpdateSelectedTransactions('owner', newOwner || newCustomOwner)}
+            onClick={() => handleUpdateSelectedTransactions('owner', newOwner)}
             className="mt-2 px-4 py-2 text-white rounded text-sm font-medium bg-blue-600 hover:bg-blue-700"
           >
             Update Owner

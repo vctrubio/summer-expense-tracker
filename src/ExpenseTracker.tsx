@@ -7,6 +7,8 @@ import ManageOwners from "./ManageOwners";
 import CSVImport from "./CSVImport";
 import HotkeyInfo from "./HotkeyInfo";
 import QuickActionsBar from "./QuickActionsBar";
+import MobileActionBar from "./MobileActionBar";
+import MobileBatteryBar from "./MobileBatteryBar";
 import CalculatorSidebar from "./CalculatorSidebar";
 
 export default function ExpenseTracker() {
@@ -288,22 +290,32 @@ export default function ExpenseTracker() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Quick Actions Bar */}
-        <QuickActionsBar
-          activeForm={activeForm}
-          setActiveForm={setActiveForm}
-          setShowHotkeys={setShowHotkeys}
-          showHotkeys={showHotkeys}
-          data={transactionsData}
-          dateRange={dateRange}
+      {/* Mobile Battery Bar - Hide when form is open */}
+      {!activeForm && (
+        <MobileBatteryBar
+          expenses={transactionsData?.expenses || []}
+          deposits={transactionsData?.deposits || []}
         />
+      )}
+      
+      <div className="mx-auto px-4 sm:px-6 sm:px-8 py-6 pb-20 sm:pb-6">
+        {/* Quick Actions Bar - Hidden on mobile */}
+        <div className="hidden sm:block">
+          <QuickActionsBar
+            activeForm={activeForm}
+            setActiveForm={setActiveForm}
+            setShowHotkeys={setShowHotkeys}
+            showHotkeys={showHotkeys}
+            data={transactionsData}
+            dateRange={dateRange}
+          />
+        </div>
 
         <div className="mt-6 space-y-6">
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Left: Main Content */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="sm:col-span-2 space-y-6">
               {renderForms()}
               <TransactionList
                 data={transactionsData}
@@ -315,8 +327,8 @@ export default function ExpenseTracker() {
               />
             </div>
 
-            {/* Right: Calculator Sidebar */}
-            <div className="lg:col-span-1">
+            {/* Right: Calculator Sidebar - Hidden on mobile */}
+            <div className="sm:col-span-1 hidden sm:block">
               <CalculatorSidebar
                 transactionsData={transactionsData}
                 dateRange={dateRange}
@@ -330,6 +342,12 @@ export default function ExpenseTracker() {
           </div>
         </div>
       </div>
+      
+      {/* Mobile Action Bar */}
+      <MobileActionBar
+        activeForm={activeForm}
+        setActiveForm={setActiveForm}
+      />
     </div>
   );
 }
