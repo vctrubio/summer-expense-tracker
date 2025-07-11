@@ -120,7 +120,7 @@ export function SignInForm() {
           Sign in
         </button>
       </form>
-      <SignUpForm />
+      {/* <SignUpForm /> */}
       <ContactInfo />
     </div>
   );
