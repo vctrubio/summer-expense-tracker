@@ -30,51 +30,52 @@ function ContactInfo() {
   );
 }
 
-// SignUpForm component - commented out for future use
-// function SignUpForm() {
-//   const { signIn } = useAuthActions();
-//   const [submitting, setSubmitting] = useState(false);
+function SignUpForm() {
+  const { signIn } = useAuthActions();
+  const [submitting, setSubmitting] = useState(false);
 
-//   return (
-//     <form
-//       className="flex flex-col gap-form-field"
-//       onSubmit={(e) => {
-//         e.preventDefault();
-//         setSubmitting(true);
-//         const formData = new FormData(e.target as HTMLFormElement);
-//         formData.set("flow", "signUp");
-//         void signIn("password", formData).catch((error) => {
-//           let toastTitle = "";
-//           if (error.message.includes("User already exists")) {
-//             toastTitle = "User already exists. Please sign in instead.";
-//           } else {
-//             toastTitle = "Could not sign up. Please try again.";
-//           }
-//           toast.error(toastTitle);
-//           setSubmitting(false);
-//         });
-//       }}
-//     >
-//       <input
-//         className="auth-input-field"
-//         type="email"
-//         name="email"
-//         placeholder="Email"
-//         required
-//       />
-//       <input
-//         className="auth-input-field"
-//         type="password"
-//         name="password"
-//         placeholder="Password"
-//         required
-//       />
-//       <button className="auth-button" type="submit" disabled={submitting}>
-//         Sign up
-//       </button>
-//     </form>
-//   );
-// }
+  return (
+    <form
+      className="flex flex-col gap-form-field"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        const formData = new FormData(e.target as HTMLFormElement);
+        formData.set("flow", "signUp");
+        void signIn("password", formData).catch((error) => {
+          let toastTitle = "";
+          if (error.message.includes("User already exists")) {
+            toastTitle = "User already exists. Please sign in instead.";
+          } else {
+            toastTitle = "Could not sign up. Please try again.";
+          }
+          toast.error(toastTitle);
+          setSubmitting(false);
+        });
+      }}
+    >
+      <input
+        className="auth-input-field"
+        type="email"
+        name="email"
+        placeholder="Email"
+        required
+      />
+      <input
+        className="auth-input-field"
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+      />
+      <button className="auth-button" type="submit" disabled={submitting}>
+        Sign up
+      </button>
+    </form>
+  );
+}
+
+export { SignUpForm };
 
 export function SignInForm() {
   const { signIn } = useAuthActions();
@@ -119,6 +120,7 @@ export function SignInForm() {
           Sign in
         </button>
       </form>
+      <SignUpForm />
       <ContactInfo />
     </div>
   );
