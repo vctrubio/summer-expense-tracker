@@ -129,12 +129,17 @@ export default function CSVImport({ isOpen, onClose, owners }: CSVImportProps) {
         const rawDate = columns[dateIndex] || "";
         let formattedDate = "";
         if (rawDate) {
-          const d = new Date(rawDate);
+          // By replacing hyphens with slashes, we hint the Date constructor to parse in local time.
+          const d = new Date(rawDate.replace(/-/g, "/"));
           if (!isNaN(d.getTime())) {
-            // Adjust for timezone to prevent off-by-one day errors
-            const timezoneOffset = d.getTimezoneOffset() * 60000;
-            const adjustedDate = new Date(d.getTime() + timezoneOffset);
-            formattedDate = adjustedDate.toISOString().split("T")[0];
+            // We want a YYYY-MM-DD string that matches the user's local date.
+            // toISOString() converts to UTC, which can change the day.
+            // So, we get local date parts and create a UTC date from them.
+            const year = d.getFullYear();
+            const month = d.getMonth();
+            const day = d.getDate();
+            const utcDate = new Date(Date.UTC(year, month, day));
+            formattedDate = utcDate.toISOString().split("T")[0];
           }
         }
 
