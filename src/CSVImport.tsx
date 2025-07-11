@@ -94,17 +94,62 @@ export default function CSVImport({ isOpen, onClose, owners }: CSVImportProps) {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split("\n").filter((line) => line.trim());
+      if (lines.length < 2) {
+        toast.error("CSV file must have a header and at least one data row.");
+        return;
+      }
 
-      const rows: CSVRow[] = lines.map((line) => {
+      const header = lines[0]
+        .split(",")
+        .map((h) => h.replace(/"/g, "").trim().toLowerCase());
+      const dataLines = lines.slice(1);
+
+      const dateIndex = header.findIndex((h) => h.includes("date"));
+      const amountIndex = header.findIndex((h) => h.includes("amount"));
+      const descriptionIndex = header.findIndex(
+        (h) => h.includes("description") || h.includes("desc"),
+      );
+      const destinationIndex = header.findIndex(
+        (h) => h.includes("destination") || h.includes("name"),
+      );
+      const typeIndex = header.findIndex((h) => h.includes("type"));
+
+      if (dateIndex === -1 || amountIndex === -1 || descriptionIndex === -1) {
+        toast.error(
+          "CSV header must contain 'Date', 'Amount', and 'Description' columns.",
+        );
+        return;
+      }
+
+      const rows: CSVRow[] = dataLines.map((line) => {
         const columns = line
           .split(",")
           .map((col) => col.replace(/"/g, "").trim());
+
+        const rawDate = columns[dateIndex] || "";
+        let formattedDate = "";
+        if (rawDate) {
+          const d = new Date(rawDate);
+          if (!isNaN(d.getTime())) {
+            // Adjust for timezone to prevent off-by-one day errors
+            const timezoneOffset = d.getTimezoneOffset() * 60000;
+            const adjustedDate = new Date(d.getTime() + timezoneOffset);
+            formattedDate = adjustedDate.toISOString().split("T")[0];
+          }
+        }
+
+        const type = 
+          typeIndex !== -1 && columns[typeIndex]?.toLowerCase() === "deposit"
+            ? "deposit"
+            : "expense";
+
         return {
-          date: columns[0] || "",
-          amount: columns[1] || "",
-          description: columns[2] || "",
-          destination: columns[3] || "",
-          type: "expense", // default to expense
+          date: formattedDate,
+          amount: columns[amountIndex] || "",
+          description: columns[descriptionIndex] || "",
+          destination:
+            destinationIndex !== -1 ? columns[destinationIndex] || "" : "",
+          type: type,
         };
       });
 
