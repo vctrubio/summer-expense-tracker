@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import TransactionForm from "./TransactionForm";
 import TransactionList from "./TransactionList";
-import ManageLabelsOwners from "./ManageLabelsOwners";
+import ManageOwners from "./ManageOwners";
 import CSVImport from "./CSVImport";
 import HotkeyInfo from "./HotkeyInfo";
 import QuickActionsBar from "./QuickActionsBar";
@@ -225,7 +225,7 @@ export default function ExpenseTracker() {
         onClose={() => setActiveForm(null)}
         owners={owners}
       />
-      <ManageLabelsOwners
+      <ManageOwners
         isOpen={activeForm === "manage"}
         onClose={() => setActiveForm(null)}
       />
