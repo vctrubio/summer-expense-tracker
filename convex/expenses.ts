@@ -84,7 +84,6 @@ export const addExpense = mutation({
   args: {
     amount: v.number(),
     desc: v.string(),
-    label: v.string(),
     dst: v.optional(v.string()),
     timestamp: v.optional(v.number()),
   },
@@ -106,7 +105,6 @@ export const addDeposit = mutation({
   args: {
     amount: v.number(),
     desc: v.string(),
-    label: v.string(),
     by: v.optional(v.string()),
     timestamp: v.optional(v.number()),
   },
@@ -163,7 +161,6 @@ export const updateExpense = mutation({
     id: v.id("expenses"),
     amount: v.number(),
     desc: v.string(),
-    label: v.string(),
     dst: v.optional(v.string()),
     timestamp: v.optional(v.number()),
   },
@@ -188,7 +185,6 @@ export const updateDeposit = mutation({
     id: v.id("deposits"),
     amount: v.number(),
     desc: v.string(),
-    label: v.string(),
     by: v.optional(v.string()),
     timestamp: v.optional(v.number()),
   },

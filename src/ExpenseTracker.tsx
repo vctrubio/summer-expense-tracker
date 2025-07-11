@@ -30,19 +30,16 @@ export default function ExpenseTracker() {
   // Initialize filters from URL params
   const [filters, setFilters] = useState<{
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   }>(() => {
     const params = new URLSearchParams(window.location.search);
     const filters: any = {};
     const type = params.get("type");
-    const label = params.get("label");
     const owner = params.get("owner");
     const sortBy = params.get("sortBy");
 
     if (type && (type === 'expense' || type === 'deposit')) filters.type = type;
-    if (label) filters.label = label;
     if (owner) filters.owner = owner;
     if (sortBy && ['date', 'highest', 'lowest'].includes(sortBy)) filters.sortBy = sortBy;
 
@@ -57,7 +54,6 @@ export default function ExpenseTracker() {
     type: "expense" | "deposit";
     amount: number;
     desc: string;
-    label: string;
     owner?: string;
     timestamp: number;
   } | null>(null);
@@ -79,10 +75,8 @@ export default function ExpenseTracker() {
   );
 
   const dateRangeData = useQuery(api.expenses.getDateRange);
-  const labels = useQuery(api.labels.list) || [];
   const owners = useQuery(api.owners.list) || [];
 
-  const addLabel = useMutation(api.labels.add);
   const addOwner = useMutation(api.owners.add);
 
   useEffect(() => {
@@ -153,7 +147,6 @@ export default function ExpenseTracker() {
     type: "expense" | "deposit";
     amount: number;
     desc: string;
-    label: string;
     owner?: string;
     timestamp: number;
   }) => {
@@ -186,7 +179,6 @@ export default function ExpenseTracker() {
 
   const handleFilterChange = (newFilters: {
     type?: 'expense' | 'deposit';
-    label?: string;
     owner?: string;
     sortBy?: 'date' | 'highest' | 'lowest';
   }) => {
@@ -197,13 +189,11 @@ export default function ExpenseTracker() {
 
     // Clear existing filter params
     url.searchParams.delete("type");
-    url.searchParams.delete("label");
     url.searchParams.delete("owner");
     url.searchParams.delete("sortBy");
 
     // Set new filter params
     if (newFilters.type) url.searchParams.set("type", newFilters.type);
-    if (newFilters.label) url.searchParams.set("label", newFilters.label);
     if (newFilters.owner) url.searchParams.set("owner", newFilters.owner);
     if (newFilters.sortBy) url.searchParams.set("sortBy", newFilters.sortBy);
 
@@ -233,7 +223,6 @@ export default function ExpenseTracker() {
       <CSVImport
         isOpen={activeForm === "csv"}
         onClose={() => setActiveForm(null)}
-        labels={labels}
         owners={owners}
       />
       <ManageLabelsOwners
@@ -321,9 +310,7 @@ export default function ExpenseTracker() {
                 onEdit={handleEdit}
                 isLoading={isLoading}
                 filters={filters}
-                labels={labels}
                 owners={owners}
-                addLabel={addLabel}
                 addOwner={addOwner}
               />
             </div>
