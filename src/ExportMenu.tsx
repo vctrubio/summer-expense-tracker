@@ -219,24 +219,42 @@ export default function ExportMenu({
 
         whatsappText += `${dayOfWeek} ${formattedDate}\n`;
 
-        dayTransactions.forEach((transaction) => {
-          const amount = `${transaction.type === "expense" ? "- " : "+ "}${Math.round(transaction.amount)}€`;
-          const owner =
-            (transaction.type === "expense" && transaction.dst) ||
-            (transaction.type === "deposit" && transaction.by)
-              ? ` ${transaction.type === "expense" ? transaction.dst : transaction.by}`
-              : "";
+        const dailyExpenses = dayTransactions.filter(
+          (t) => t.type === "expense",
+        );
+        const dailyDeposits = dayTransactions.filter(
+          (t) => t.type === "deposit",
+        );
+        const dailyTotalExpenses = dailyExpenses.reduce(
+          (sum, t) => sum + t.amount,
+          0,
+        );
 
+        dailyExpenses.forEach((transaction) => {
+          const amount = `• ${Math.round(transaction.amount)}€`;
+          const owner = transaction.dst ? ` ${transaction.dst}` : "";
           const capitalizedDesc =
             transaction.desc.charAt(0).toUpperCase() +
             transaction.desc.slice(1);
+          whatsappText += `${amount} ${capitalizedDesc}${owner}\n`;
+        });
 
+        if (dailyExpenses.length > 0) {
+          whatsappText += `Total: ${Math.round(dailyTotalExpenses)}€\n`;
+        }
+
+        dailyDeposits.forEach((transaction) => {
+          const amount = `+ ${Math.round(transaction.amount)}€`;
+          const owner = transaction.by ? ` ${transaction.by}` : "";
+          const capitalizedDesc =
+            transaction.desc.charAt(0).toUpperCase() +
+            transaction.desc.slice(1);
           whatsappText += `${amount} ${capitalizedDesc}${owner}\n`;
         });
 
         whatsappText += "\n";
       },
-    );
+    )
 
     // Calculate totals
     const totalExpenses = transactions
