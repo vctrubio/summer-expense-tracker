@@ -230,6 +230,15 @@ export default function ExportMenu({
           0,
         );
 
+        dailyDeposits.forEach((transaction) => {
+          const amount = `+ ${Math.round(transaction.amount)}€`;
+          const owner = transaction.by ? ` ${transaction.by}` : "";
+          const capitalizedDesc =
+            transaction.desc.charAt(0).toUpperCase() +
+            transaction.desc.slice(1);
+          whatsappText += `${amount} ${capitalizedDesc}${owner}\n`;
+        });
+
         dailyExpenses.forEach((transaction) => {
           const amount = `• ${Math.round(transaction.amount)}€`;
           const owner = transaction.dst ? ` ${transaction.dst}` : "";
@@ -242,15 +251,6 @@ export default function ExportMenu({
         if (dailyExpenses.length > 0) {
           whatsappText += `Total: ${Math.round(dailyTotalExpenses)}€\n`;
         }
-
-        dailyDeposits.forEach((transaction) => {
-          const amount = `+ ${Math.round(transaction.amount)}€`;
-          const owner = transaction.by ? ` ${transaction.by}` : "";
-          const capitalizedDesc =
-            transaction.desc.charAt(0).toUpperCase() +
-            transaction.desc.slice(1);
-          whatsappText += `${amount} ${capitalizedDesc}${owner}\n`;
-        });
 
         whatsappText += "\n";
       },
